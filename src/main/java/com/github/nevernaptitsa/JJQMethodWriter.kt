@@ -10,23 +10,23 @@ class JJQMethodWriter(private val output: PrintWriter,
                       private val expression: String,
                       private val method: Method,
                       private val fieldLocator: FieldLocator,
-                      private val typeInspector: TypeInspector): JJQBaseListener(){
+                      private val typeInspector: TypeInspector) : JJQBaseListener() {
     companion object {
         val TYPE_ITERABLE = Type("java.lang.Iterable")
     }
 
-    interface FieldLocator{
-        fun locateFieldInfo(currentType:Type,  fieldLogicalName:Field): FieldAccessorInfo?
+    interface FieldLocator {
+        fun locateFieldInfo(currentType: Type, fieldLogicalName: Field): FieldAccessorInfo?
     }
 
-    interface TypeInspector{
-        fun subclasses(typeToCheck:Type, typeToSubclass:Type): Boolean
-        fun collectionContents(typeToUnpack:Type): Type
+    interface TypeInspector {
+        fun subclasses(typeToCheck: Type, typeToSubclass: Type): Boolean
+        fun collectionContents(typeToUnpack: Type): Type
     }
 
-    class JJQParseException(message:String) : Exception(message)
-    enum class AccessorType{METHOD, BARE}
-    enum class Visibility{
+    class JJQParseException(message: String) : Exception(message)
+    enum class AccessorType { METHOD, BARE }
+    enum class Visibility {
         PUBLIC, PRIVATE, PACKAGE;
 
         override fun toString(): String {
@@ -34,18 +34,18 @@ class JJQMethodWriter(private val output: PrintWriter,
         }
     }
     data class FieldAccessorInfo(
-            val accessorName:String,
-            val resultType:Type,
-            val accessorType:AccessorType = AccessorType.METHOD
+            val accessorName: String,
+            val resultType: Type,
+            val accessorType: AccessorType = AccessorType.METHOD
     )
-    data class Method(val name:String, val visibility: Visibility, val inputType: Type, val outputType: Type)
-    data class Type(val name:String)
-    data class Field(val name:String)
+    data class Method(val name: String, val visibility: Visibility, val inputType: Type, val outputType: Type)
+    data class Type(val name: String)
+    data class Field(val name: String)
 
-    var currentType:Type? = null
+    var currentType: Type? = null
     var currentPadding = 0
 
-    fun writeMethod(){
+    fun writeMethod() {
         val lexer = JJQLexer(CharStreams.fromString(expression))
         val tokens = CommonTokenStream(lexer)
         val parser = JJQParser(tokens)
@@ -53,7 +53,6 @@ class JJQMethodWriter(private val output: PrintWriter,
         val walker = ParseTreeWalker()
         walker.walk(this, expression)
     }
-
 
     override fun enterJjqExpression(ctx: JJQParser.JjqExpressionContext?) {
         beginMethod()
@@ -67,7 +66,7 @@ class JJQMethodWriter(private val output: PrintWriter,
 
     private fun endStreamBasedOnOutputType() {
         pad()
-        when(typeInspector.subclasses(method.outputType, Type("java.util.Collection"))){
+        when (typeInspector.subclasses(method.outputType, Type("java.util.Collection"))) {
             true -> output.printf(".collect(java.util.stream.Collectors.toCollection(%s::new));\n",
                                     method.outputType.name)
             false -> output.printf(".findFirst().get();\n")
@@ -77,7 +76,7 @@ class JJQMethodWriter(private val output: PrintWriter,
 
     private fun beginStreamBasedOnInputType() {
         pad()
-        when(typeInspector.subclasses(method.inputType, TYPE_ITERABLE)){
+        when (typeInspector.subclasses(method.inputType, TYPE_ITERABLE)) {
             true -> {
                 output.printf("return arg.stream()\n")
                 currentType = typeInspector.collectionContents(method.inputType)
@@ -93,7 +92,7 @@ class JJQMethodWriter(private val output: PrintWriter,
     override fun enterStageExpression(ctx: JJQParser.StageExpressionContext?) {
         val parseRuleContexts = ctx!!.getRuleContexts(ParserRuleContext::class.java)
         val lastParseRuleContext = parseRuleContexts.lastOrNull()
-        when(lastParseRuleContext){
+        when (lastParseRuleContext) {
             is JJQParser.ArrayFlatMapContext -> {
                 pad()
                 output.printf(".flatMap(v->v")
@@ -102,7 +101,7 @@ class JJQMethodWriter(private val output: PrintWriter,
                 pad()
                 output.printf(".map(v->v")
             }
-            else ->{
+            else -> {
                 pad()
                 output.printf(".map(v->")
             }
@@ -120,13 +119,13 @@ class JJQMethodWriter(private val output: PrintWriter,
 
     override fun enterStructureSelector(ctx: JJQParser.StructureSelectorContext?) {
         val fieldName = ctx?.ID()?.text
-        val field = when(fieldName){
+        val field = when (fieldName) {
             null -> return // an empty '.' means the value of the current node
             else -> Field(fieldName)
         }
         val accessorInfo = fieldLocator.locateFieldInfo(currentType!!, field)
-        when(accessorInfo){
-            null-> {
+        when (accessorInfo) {
+            null -> {
                 val symbol = ctx.ID().symbol
                 val error = String.format("Unable to locate accessor for field %s of class %s at col %s line %s",
                         fieldName,
@@ -135,10 +134,10 @@ class JJQMethodWriter(private val output: PrintWriter,
                         symbol.line)
                 throw JJQParseException(error)
             }
-            else ->{
+            else -> {
                 output.printf(".%s%s",
                     accessorInfo.accessorName,
-                    when(accessorInfo.accessorType){
+                    when (accessorInfo.accessorType) {
                         AccessorType.METHOD -> "()"
                         AccessorType.BARE -> ""
                     }
@@ -149,34 +148,34 @@ class JJQMethodWriter(private val output: PrintWriter,
 
     }
 
-    private fun pad(){
-        for(i in 0..currentPadding){
+    private fun pad() {
+        for (i in 0..currentPadding) {
             output.print(' ')
         }
     }
 
-    private fun beginMethod(){
+    private fun beginMethod() {
         pad()
         output.printf("%s %s %s(%s arg){\n",
                 method.visibility,
                 method.outputType.name,
                 method.name,
-                method.inputType.name);
+                method.inputType.name)
         pushPadding()
     }
 
     private fun pushPadding() {
-        currentPadding+=2
+        currentPadding += 2
     }
 
-    private fun endMethod(){
+    private fun endMethod() {
         popPadding()
         pad()
         output.println("}\n")
     }
 
     private fun popPadding() {
-        currentPadding-=2
+        currentPadding -= 2
     }
 
 }

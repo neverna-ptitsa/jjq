@@ -9,7 +9,7 @@ import org.junit.runner.RunWith
 import org.mdkt.compiler.InMemoryJavaCompiler
 import java.io.PrintWriter
 import java.lang.reflect.ParameterizedType
-import java.util.*
+import java.util.Arrays
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName
 import kotlin.test.assertEquals
@@ -19,14 +19,14 @@ import kotlin.test.assertEquals
 @RunWith(JUnitPlatform::class)
 class JJQMethodWriterTest : Spek({
 
-    given("an object selection expression" ){
+    given("an object selection expression" ) {
         val objectSelectExpr = ".foo.bar"
-        it("generates a method signature has a data class for input and a string for output"){
+        it("generates a method signature has a data class for input and a string for output") {
             val fooBar = Baz(Foo("a-value"))
             val output = runTestWithInputs(objectSelectExpr, Baz::class, String::class, fooBar)
             assertEquals("a-value", output)
         }
-        it("generates a method signature that has a list for input and a list of string for output"){
+        it("generates a method signature that has a list for input and a list of string for output") {
             val bazList = BazList()
             bazList.add(Baz(Foo("a-value")))
             bazList.add(Baz(Foo("b-value")))
@@ -36,9 +36,9 @@ class JJQMethodWriterTest : Spek({
         }
     }
 
-    given("a flatmap expression followed by a structure selector"){
+    given("a flatmap expression followed by a structure selector") {
         val listExpression = "[] | .foo.bar"
-        it("generates a method signature that has a list-list for input and a list of string for output"){
+        it("generates a method signature that has a list-list for input and a list of string for output") {
             val bazList1 = BazList()
             bazList1.add(Baz(Foo("a-value")))
             bazList1.add(Baz(Foo("b-value")))
@@ -59,19 +59,19 @@ class JJQMethodWriterTest : Spek({
 
 /* Helpers */
 
-class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator{
+class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator {
 
     override fun locateFieldInfo(currentType: JJQMethodWriter.Type, logicalField: JJQMethodWriter.Field): JJQMethodWriter.FieldAccessorInfo? {
         val methodOptional = Arrays.stream(Class.forName(currentType.name).declaredMethods)
                 .filter({ m->
                     m.name == "get" + logicalField.name.substring(0, 1).toUpperCase() +
-                            if (logicalField.name.length > 1)  logicalField.name.substring(1, logicalField.name.length)
+                            if (logicalField.name.length > 1) logicalField.name.substring(1, logicalField.name.length)
                             else ""
                 })
                 .findFirst()
-        if (methodOptional.isPresent){
+        if (methodOptional.isPresent) {
             val method = methodOptional.get()
-            return JJQMethodWriter.FieldAccessorInfo(method.name, JJQMethodWriter.Type(method.returnType.name), JJQMethodWriter.AccessorType.METHOD);
+            return JJQMethodWriter.FieldAccessorInfo(method.name, JJQMethodWriter.Type(method.returnType.name), JJQMethodWriter.AccessorType.METHOD)
         } else {
             return null
         }
@@ -91,16 +91,15 @@ class ReflectedTypeInspector : JJQMethodWriter.TypeInspector {
 
 }
 
-
-data class Foo(val bar:String)
-data class Baz(val foo:Foo)
-class BazList: ArrayList<Baz>()
-class StringList: ArrayList<String>()
-class BazListList: ArrayList<BazList>()
-data class PrintWriterAndOutputStream(val writer:PrintWriter, val os:StringBuilderWriter)
+data class Foo(val bar: String)
+data class Baz(val foo: Foo)
+class BazList : ArrayList<Baz>()
+class StringList : ArrayList<String>()
+class BazListList : ArrayList<BazList>()
+data class PrintWriterAndOutputStream(val writer: PrintWriter, val os: StringBuilderWriter)
 var classNum = 0
 
-fun <I:Any,O:Any> runTestWithInputs(objectSelectExpr:String, inputClass:KClass<I>, outputClass:KClass<O>, testData:I):O{
+fun <I: Any, O: Any> runTestWithInputs(objectSelectExpr: String, inputClass: KClass<I>, outputClass: KClass<O>, testData: I): O {
     val writerAndStream = startClassWriter()
     val engine = JJQMethodWriter(
             output=writerAndStream.writer,
@@ -119,14 +118,14 @@ fun <I:Any,O:Any> runTestWithInputs(objectSelectExpr:String, inputClass:KClass<I
     return outputClass.java.cast(method.invoke(clazzInstance, testData))
 }
 
-fun startClassWriter():PrintWriterAndOutputStream{
+fun startClassWriter(): PrintWriterAndOutputStream {
     val output = StringBuilderWriter()
     val writer = PrintWriter(output)
     writer.printf("public class TestClass%s{\n", ++classNum)
     return PrintWriterAndOutputStream(writer, output)
 }
 
-fun finishClass(wos:PrintWriterAndOutputStream):Class<*>{
+fun finishClass(wos: PrintWriterAndOutputStream): Class<*> {
     wos.writer.printf("}")
     wos.writer.close()
     val clazzContents = wos.os.builder.toString()

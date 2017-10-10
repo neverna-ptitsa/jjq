@@ -173,6 +173,55 @@
                     <!-- additional 3rd party ruleset(s) can be specified here -->
                 </dependencies>
             </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.7.9</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.codacy</groupId>
+                        <artifactId>codacy-coverage-reporter</artifactId>
+                        <classifier>assembly</classifier>
+                        <version>2.0.1</version>
+                    </dependency>
+                </dependencies>
+                <executions>
+                    <execution>
+                        <id>upload-coverage</id>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.codacy.CodacyCoverageReporter</mainClass>
+                            <arguments>
+                                <argument>-l</argument>
+                                <argument>Kotlin</argument>
+                                <argument>-r</argument>
+                                <argument>target/site/jacoco/jacoco.xml</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

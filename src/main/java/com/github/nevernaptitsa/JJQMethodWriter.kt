@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import java.io.PrintWriter
 
-class JJQMethodWriter(private val output: PrintWriter,
+internal class JJQMethodWriter(private val output: PrintWriter,
                       private val expression: String,
                       private val method: Method,
                       private val fieldLocator: FieldLocator,

@@ -10,8 +10,6 @@ import org.mdkt.compiler.InMemoryJavaCompiler
 import java.io.PrintWriter
 import java.lang.reflect.ParameterizedType
 import java.util.Arrays
-import kotlin.reflect.KClass
-import kotlin.reflect.jvm.jvmName
 import kotlin.test.assertEquals
 
 /* Main Test Body */
@@ -126,7 +124,7 @@ class ReflectedTypeInspector : JJQMethodWriter.TypeInspector {
     }
 
     override fun subclasses(typeToCheck: JJQMethodWriter.Type, typeToSubclass: JJQMethodWriter.Type): Boolean {
-        when(typeToCheck.name){
+        when (typeToCheck.name) {
             "boolean", "byte", "short", "int", "long", "char", "float", "double" -> return false
         }
         return Class.forName(typeToSubclass.name).isAssignableFrom(Class.forName(typeToCheck.name))

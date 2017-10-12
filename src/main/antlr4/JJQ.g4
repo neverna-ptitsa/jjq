@@ -22,34 +22,20 @@ structureSelector
     | DOT ID structureSelector?
     ;
 
-structureSelectorOrLiteral
+structureSelectorOrBooleanLiteral
     : structureSelector
     | TRUE
     | FALSE
     ;
 
 booleanExpression
-    : andExpression
-    | orExpression
-    | structureSelectorOrLiteral
+    : structureSelectorOrBooleanLiteral booleanExpressionR
     ;
 
-andExpression
-    : structureSelectorOrLiteral andExpressionR
+booleanExpressionR
+    : (AND booleanExpression booleanExpressionR)?
+    | (OR booleanExpression booleanExpressionR)?
     ;
-
-andExpressionR
-    : (AND booleanExpression andExpressionR)?
-    ;
-
-orExpression
-    : structureSelectorOrLiteral orExpressionR
-    ;
-
-orExpressionR
-    : (OR booleanExpression orExpressionR)?
-    ;
-
 
 TRUE       : 'true';
 FALSE      : 'false';

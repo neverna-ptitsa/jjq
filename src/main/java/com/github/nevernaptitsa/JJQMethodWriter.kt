@@ -108,6 +108,32 @@ class JJQMethodWriter(private val output: PrintWriter,
         }
     }
 
+    override fun enterStructureSelectorOrBooleanLiteral(ctx: JJQParser.StructureSelectorOrBooleanLiteralContext?) {
+        val structureSelector = ctx?.structureSelector()
+        val t = ctx?.TRUE()
+        val f = ctx?.FALSE()
+        if(structureSelector != null){
+             output.printf("v")
+        }
+        if(t != null){
+            output.printf("true")
+        }
+        if(f != null){
+            output.printf("false")
+        }
+    }
+
+    override fun enterBooleanExpressionR(ctx: JJQParser.BooleanExpressionRContext?) {
+        val and = ctx?.AND()
+        val or = ctx?.OR()
+        if(and != null){
+            output.printf(" && ")
+        }
+        if(or != null){
+            output.printf(" || ")
+        }
+    }
+
     override fun exitStageExpression(ctx: JJQParser.StageExpressionContext?) {
         output.printf(")\n")
     }

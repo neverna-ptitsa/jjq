@@ -15,33 +15,6 @@ internal class JJQMethodWriter(private val output: PrintWriter,
         val TYPE_ITERABLE = Type("java.lang.Iterable")
     }
 
-    interface FieldLocator {
-        fun locateFieldInfo(currentType: Type, fieldLogicalName: Field): FieldAccessorInfo?
-    }
-
-    interface TypeInspector {
-        fun subclasses(typeToCheck: Type, typeToSubclass: Type): Boolean
-        fun collectionContents(typeToUnpack: Type): Type
-    }
-
-    class JJQParseException(message: String) : Exception(message)
-    enum class AccessorType { METHOD, BARE }
-    enum class Visibility {
-        PUBLIC, PRIVATE, PACKAGE;
-
-        override fun toString(): String {
-            return super.toString().toLowerCase()
-        }
-    }
-    data class FieldAccessorInfo(
-            val accessorName: String,
-            val resultType: Type,
-            val accessorType: AccessorType = AccessorType.METHOD
-    )
-    data class Method(val name: String, val visibility: Visibility, val inputType: Type, val outputType: Type)
-    data class Type(val name: String)
-    data class Field(val name: String)
-
     var currentType: Type? = null
     var currentPadding = 0
 
@@ -205,3 +178,31 @@ internal class JJQMethodWriter(private val output: PrintWriter,
     }
 
 }
+
+
+internal interface FieldLocator {
+    fun locateFieldInfo(currentType: Type, fieldLogicalName: Field): FieldAccessorInfo?
+}
+
+internal interface TypeInspector {
+    fun subclasses(typeToCheck: Type, typeToSubclass: Type): Boolean
+    fun collectionContents(typeToUnpack: Type): Type
+}
+
+internal class JJQParseException(message: String) : Exception(message)
+internal enum class AccessorType { METHOD, BARE }
+internal enum class Visibility {
+    PUBLIC, PRIVATE, PACKAGE;
+
+    override fun toString(): String {
+        return super.toString().toLowerCase()
+    }
+}
+internal data class FieldAccessorInfo(
+        val accessorName: String,
+        val resultType: Type,
+        val accessorType: AccessorType = AccessorType.METHOD
+)
+internal data class Method(val name: String, val visibility: Visibility, val inputType: Type, val outputType: Type)
+internal data class Type(val name: String)
+internal data class Field(val name: String)

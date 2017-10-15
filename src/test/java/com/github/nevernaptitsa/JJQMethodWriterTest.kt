@@ -97,7 +97,7 @@ class JJQMethodWriterTest : Spek({
 
 /* Helpers */
 
-class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator {
+internal class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator {
 
     override fun locateFieldInfo(currentType: JJQMethodWriter.Type, logicalField: JJQMethodWriter.Field): JJQMethodWriter.FieldAccessorInfo? {
         val methodOptional = Arrays.stream(Class.forName(currentType.name).declaredMethods)
@@ -117,7 +117,7 @@ class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator {
 
 }
 
-class ReflectedTypeInspector : JJQMethodWriter.TypeInspector {
+internal class ReflectedTypeInspector : JJQMethodWriter.TypeInspector {
 
     override fun collectionContents(typeToUnpack: JJQMethodWriter.Type): JJQMethodWriter.Type {
         return JJQMethodWriter.Type((Class.forName(typeToUnpack.name).genericSuperclass as ParameterizedType).actualTypeArguments[0].typeName)

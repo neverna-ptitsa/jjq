@@ -1,4 +1,4 @@
-package com.github.nevernaptitsa
+package com.github.nevernaptitsa.methodwriter
 
 import com.github.nevernaptitsa.model.Type
 

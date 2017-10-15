@@ -1,5 +1,8 @@
 package com.github.nevernaptitsa
 
+import com.github.nevernaptitsa.methodwriter.FieldLocator
+import com.github.nevernaptitsa.methodwriter.JJQMethodWriter
+import com.github.nevernaptitsa.methodwriter.TypeInspector
 import org.apache.commons.io.output.StringBuilderWriter
 import org.jetbrains.spek.api.Spek
 import org.jetbrains.spek.api.dsl.given
@@ -23,7 +26,7 @@ import kotlin.test.assertEquals
 @RunWith(JUnitPlatform::class)
 class JJQMethodWriterTest : Spek({
 
-    given("an object selection expression" ) {
+    given("an object selection expression") {
         val objectSelectExpr = ".foo.bar"
         it("generates a method signature has a data class for input and a string for output") {
             val fooBar = Baz(Foo("a-value"))
@@ -107,7 +110,7 @@ internal class ReflectedGetterFieldLocator : FieldLocator {
 
     override fun locateFieldInfo(currentType: Type, logicalField: Field): FieldAccessorInfo? {
         val methodOptional = Arrays.stream(Class.forName(currentType.name).declaredMethods)
-                .filter({ m->
+                .filter({ m ->
                     m.name == "get" + logicalField.name.substring(0, 1).toUpperCase() +
                             if (logicalField.name.length > 1) logicalField.name.substring(1, logicalField.name.length)
                             else ""
@@ -145,21 +148,19 @@ class BazList : ArrayList<Baz>()
 class StringList : ArrayList<String>()
 class BazListList : ArrayList<BazList>()
 data class PrintWriterAndOutputStream(val writer: PrintWriter, val os: StringBuilderWriter)
+
 var classNum = 0
 
-fun <I: Any, O: Any> runTestWithInputs(objectSelectExpr: String, inputClass: Class<I>, outputClass: Class<O>, testData: I): O {
+fun <I : Any, O : Any> runTestWithInputs(objectSelectExpr: String, inputClass: Class<I>, outputClass: Class<O>, testData: I): O {
     val writerAndStream = startClassWriter()
-    val engine = JJQMethodWriter(
-            output=writerAndStream.writer,
-            expression=objectSelectExpr,
-            method= Method(name="method",
+    val engine = JJQMethodWriter(ReflectedGetterFieldLocator(), ReflectedTypeInspector())
+    engine.writeMethod(writerAndStream.writer, objectSelectExpr,
+            Method(name = "method",
                     visibility = Visibility.PUBLIC,
                     outputType = Type(outputClass.name),
-                    inputType = Type(inputClass.name)),
-            fieldLocator = ReflectedGetterFieldLocator(),
-            typeInspector = ReflectedTypeInspector()
+                    inputType = Type(inputClass.name)
+            )
     )
-    engine.writeMethod()
     val clazz = finishClass(writerAndStream)
     val clazzInstance = clazz.newInstance()
     val method = clazz.getMethod("method", inputClass)
@@ -178,5 +179,5 @@ fun finishClass(wos: PrintWriterAndOutputStream): Class<*> {
     wos.writer.close()
     val clazzContents = wos.os.builder.toString()
     println(clazzContents)
-    return InMemoryJavaCompiler.compile("TestClass"+classNum, clazzContents)
+    return InMemoryJavaCompiler.compile("TestClass" + classNum, clazzContents)
 }

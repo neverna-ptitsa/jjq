@@ -1,4 +1,4 @@
-package com.github.nevernaptitsa
+package com.github.nevernaptitsa.methodwriter
 
 import com.github.nevernaptitsa.model.Field
 import com.github.nevernaptitsa.model.FieldAccessorInfo

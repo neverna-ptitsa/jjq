@@ -10,6 +10,12 @@ import org.mdkt.compiler.InMemoryJavaCompiler
 import java.io.PrintWriter
 import java.lang.reflect.ParameterizedType
 import java.util.Arrays
+import com.github.nevernaptitsa.model.Type
+import com.github.nevernaptitsa.model.Method
+import com.github.nevernaptitsa.model.Visibility
+import com.github.nevernaptitsa.model.FieldAccessorInfo
+import com.github.nevernaptitsa.model.Field
+import com.github.nevernaptitsa.model.AccessorType
 import kotlin.test.assertEquals
 
 /* Main Test Body */
@@ -97,9 +103,9 @@ class JJQMethodWriterTest : Spek({
 
 /* Helpers */
 
-internal class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator {
+internal class ReflectedGetterFieldLocator : FieldLocator {
 
-    override fun locateFieldInfo(currentType: JJQMethodWriter.Type, logicalField: JJQMethodWriter.Field): JJQMethodWriter.FieldAccessorInfo? {
+    override fun locateFieldInfo(currentType: Type, logicalField: Field): FieldAccessorInfo? {
         val methodOptional = Arrays.stream(Class.forName(currentType.name).declaredMethods)
                 .filter({ m->
                     m.name == "get" + logicalField.name.substring(0, 1).toUpperCase() +
@@ -109,7 +115,7 @@ internal class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator {
                 .findFirst()
         if (methodOptional.isPresent) {
             val method = methodOptional.get()
-            return JJQMethodWriter.FieldAccessorInfo(method.name, JJQMethodWriter.Type(method.returnType.name), JJQMethodWriter.AccessorType.METHOD)
+            return FieldAccessorInfo(method.name, Type(method.returnType.name), AccessorType.METHOD)
         } else {
             return null
         }
@@ -117,13 +123,13 @@ internal class ReflectedGetterFieldLocator : JJQMethodWriter.FieldLocator {
 
 }
 
-internal class ReflectedTypeInspector : JJQMethodWriter.TypeInspector {
+internal class ReflectedTypeInspector : TypeInspector {
 
-    override fun collectionContents(typeToUnpack: JJQMethodWriter.Type): JJQMethodWriter.Type {
-        return JJQMethodWriter.Type((Class.forName(typeToUnpack.name).genericSuperclass as ParameterizedType).actualTypeArguments[0].typeName)
+    override fun collectionContents(typeToUnpack: Type): Type {
+        return Type((Class.forName(typeToUnpack.name).genericSuperclass as ParameterizedType).actualTypeArguments[0].typeName)
     }
 
-    override fun subclasses(typeToCheck: JJQMethodWriter.Type, typeToSubclass: JJQMethodWriter.Type): Boolean {
+    override fun subclasses(typeToCheck: Type, typeToSubclass: Type): Boolean {
         when (typeToCheck.name) {
             "boolean", "byte", "short", "int", "long", "char", "float", "double" -> return false
         }
@@ -146,10 +152,10 @@ fun <I: Any, O: Any> runTestWithInputs(objectSelectExpr: String, inputClass: Cla
     val engine = JJQMethodWriter(
             output=writerAndStream.writer,
             expression=objectSelectExpr,
-            method= JJQMethodWriter.Method(name="method",
-                    visibility = JJQMethodWriter.Visibility.PUBLIC,
-                    outputType = JJQMethodWriter.Type(outputClass.name),
-                    inputType = JJQMethodWriter.Type(inputClass.name)),
+            method= Method(name="method",
+                    visibility = Visibility.PUBLIC,
+                    outputType = Type(outputClass.name),
+                    inputType = Type(inputClass.name)),
             fieldLocator = ReflectedGetterFieldLocator(),
             typeInspector = ReflectedTypeInspector()
     )

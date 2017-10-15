@@ -1,5 +1,9 @@
 package com.github.nevernaptitsa
 
+import com.github.nevernaptitsa.model.AccessorType
+import com.github.nevernaptitsa.model.Field
+import com.github.nevernaptitsa.model.Method
+import com.github.nevernaptitsa.model.Type
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.ParserRuleContext
@@ -7,40 +11,13 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker
 import java.io.PrintWriter
 
 internal class JJQMethodWriter(private val output: PrintWriter,
-                      private val expression: String,
-                      private val method: Method,
-                      private val fieldLocator: FieldLocator,
-                      private val typeInspector: TypeInspector) : JJQBaseListener() {
+                               private val expression: String,
+                               private val method: Method,
+                               private val fieldLocator: FieldLocator,
+                               private val typeInspector: TypeInspector) : JJQBaseListener() {
     companion object {
         val TYPE_ITERABLE = Type("java.lang.Iterable")
     }
-
-    interface FieldLocator {
-        fun locateFieldInfo(currentType: Type, fieldLogicalName: Field): FieldAccessorInfo?
-    }
-
-    interface TypeInspector {
-        fun subclasses(typeToCheck: Type, typeToSubclass: Type): Boolean
-        fun collectionContents(typeToUnpack: Type): Type
-    }
-
-    class JJQParseException(message: String) : Exception(message)
-    enum class AccessorType { METHOD, BARE }
-    enum class Visibility {
-        PUBLIC, PRIVATE, PACKAGE;
-
-        override fun toString(): String {
-            return super.toString().toLowerCase()
-        }
-    }
-    data class FieldAccessorInfo(
-            val accessorName: String,
-            val resultType: Type,
-            val accessorType: AccessorType = AccessorType.METHOD
-    )
-    data class Method(val name: String, val visibility: Visibility, val inputType: Type, val outputType: Type)
-    data class Type(val name: String)
-    data class Field(val name: String)
 
     var currentType: Type? = null
     var currentPadding = 0

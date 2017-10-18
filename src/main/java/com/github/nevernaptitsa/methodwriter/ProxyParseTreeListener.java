@@ -22,7 +22,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * </pre>
  */
 class ProxyParseTreeListener implements ParseTreeListener {
-    private List<ParseTreeListener> listeners;
+    private final List<ParseTreeListener> listeners;
 
     /**
      * Creates a new proxy without an empty list of listeners. Add
@@ -39,7 +39,7 @@ class ProxyParseTreeListener implements ParseTreeListener {
      * @param listeners A list of listerners to receive events.
      */
     public ProxyParseTreeListener( List<ParseTreeListener> listeners ) {
-        setListeners( listeners );
+        this.listeners = listeners;
     }
 
     @Override
@@ -98,21 +98,6 @@ class ProxyParseTreeListener implements ParseTreeListener {
      */
     private List<ParseTreeListener> getListeners() {
         return this.listeners;
-    }
-
-    /**
-     * Changes the list of listeners to receive events. If the given list of
-     * listeners is null, an empty list will be created.
-     *
-     * @param listeners A list of listeners to receive tree walking
-     * events.
-     */
-    public void setListeners( List<ParseTreeListener> listeners ) {
-        if( listeners == null ) {
-            listeners = createParseTreeListenerList();
-        }
-
-        this.listeners = listeners;
     }
 
     /**

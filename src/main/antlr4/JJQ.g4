@@ -24,8 +24,7 @@ structureSelector
 
 structureSelectorOrBooleanLiteral
     : structureSelector
-    | TRUE
-    | FALSE
+    | BOOLEAN_LITERAL
     ;
 
 booleanExpression
@@ -33,15 +32,13 @@ booleanExpression
     ;
 
 booleanExpressionR
-    : (AND booleanExpression booleanExpressionR)?
-    | (OR booleanExpression booleanExpressionR)?
+    : (BOOLEAN_OP booleanExpression booleanExpressionR)?
     ;
 
-TRUE       : 'true';
-FALSE      : 'false';
-OR         : 'or';
-AND        : 'and';
-FLATMAP    : '[]' ;
-DOT        : '.' ;
-ID         : [_a-z0-9$]+ ;
-WS         : [ \t\r\n]+ -> skip ;
+
+BOOLEAN_LITERAL : 'true' | 'false';
+BOOLEAN_OP      : '==' | '!=' | 'and' | 'or' ;
+FLATMAP         : '[]' ;
+DOT             : '.' ;
+ID              : [_a-z0-9$]+ ;
+WS              : [ \t\r\n]+ -> skip ;

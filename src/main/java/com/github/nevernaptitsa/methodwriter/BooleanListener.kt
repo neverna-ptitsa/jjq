@@ -6,27 +6,23 @@ import com.github.nevernaptitsa.JJQParser
 internal class BooleanListener(private val sharedState: WriterSharedState) : JJQBaseListener() {
     override fun enterStructureSelectorOrBooleanLiteral(ctx: JJQParser.StructureSelectorOrBooleanLiteralContext?) {
         val structureSelector = ctx?.structureSelector()
-        val t = ctx?.TRUE()
-        val f = ctx?.FALSE()
+        val t = ctx?.BOOLEAN_LITERAL()?.text
         if (structureSelector != null) {
             sharedState.output.printf("v")
         }
-        if (t != null) {
-            sharedState.output.printf("true")
-        }
-        if (f != null) {
-            sharedState.output.printf("false")
+        when (t) {
+            "true" -> sharedState.output.printf("true")
+            "false" -> sharedState.output.printf("false")
         }
     }
 
     override fun enterBooleanExpressionR(ctx: JJQParser.BooleanExpressionRContext?) {
-        val and = ctx?.AND()
-        val or = ctx?.OR()
-        if (and != null) {
-            sharedState.output.printf(" && ")
-        }
-        if (or != null) {
-            sharedState.output.printf(" || ")
+        val op = ctx?.BOOLEAN_OP()?.text
+        when (op) {
+            "and" -> sharedState.output.printf(" && ")
+            "or" -> sharedState.output.printf(" || ")
+            "!=" -> sharedState.output.printf(" != ")
+            "==" -> sharedState.output.printf(" == ")
         }
     }
 }
